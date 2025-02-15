@@ -17,8 +17,8 @@ const BottomTabs = () => {
         sx={{ position: "fixed", bottom: 0, width: "100%", backgroundColor: "#fff", borderTop: "1px solid #ddd" }}
       >
         <BottomNavigationAction label="Overview" value="/" icon={<HomeIcon />} />
-        <BottomNavigationAction label="EHRDataRetrieval" value="/ehr-data-retrieval" icon={<AccountCircleIcon />} />
-        <BottomNavigationAction label="SmartCardReading" value="/smart-card-reading" icon={<SettingsIcon />} />
+        <BottomNavigationAction label="Add Data" value="/ehr-data-retrieval" icon={<AccountCircleIcon />} />
+        <BottomNavigationAction label="Smart Cards" value="/smart-card-reading" icon={<SettingsIcon />} />
       </BottomNavigation>
     );
   };
