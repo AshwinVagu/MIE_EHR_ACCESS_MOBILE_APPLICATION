@@ -1,6 +1,9 @@
+import "webrtc-adapter";
 import { Meteor } from 'meteor/meteor';
 import { LinksCollection } from '/imports/api/links';
 import '/imports/api/cameraScanningOperations';
+import '/imports/api/bundleData';
+import { BundleDataCollection } from '/imports/api/bundleDataCollection';
 
 async function insertLink({ title, url }) {
   await LinksCollection.insertAsync({ title, url, createdAt: new Date() });
@@ -35,4 +38,9 @@ Meteor.startup(async () => {
   Meteor.publish("links", function () {
     return LinksCollection.find();
   });
+
+  Meteor.publish('fhir_bundle_data', function () {
+    return BundleDataCollection.find();
+  });
+
 });
