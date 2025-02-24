@@ -1,7 +1,8 @@
 import { Meteor } from "meteor/meteor";
-import { Buffer } from 'buffer';          // Node.js Buffer for base64 operations
-import zlib from 'zlib'; 
-import axios from 'axios';
+import { Buffer } from "buffer";          // Node.js Buffer for base64 operations
+import zlib from "zlib"; 
+import axios from "axios";
+import * as jose from "jose"; 
 
 function base64Decode(data) {
     let padding = '='.repeat((4 - data.length % 4) % 4); 
@@ -43,11 +44,42 @@ async function verifyIss(iss) {
       console.log("Issuer verified successfully and SMART configuration is valid.");
       return true;
 
-    } catch (error) {
+  } catch (error) {
       console.error(`Failed to fetch SMART configuration: ${error.message || error}`);
       return false;  // Return false for any kind of failure
-    }
   }
+}
+
+// Fetch the public key from the issuer's JWKS endpoint
+async function fetchPublicKey(iss) {
+  try {
+      const jwksUrl = `${iss}/.well-known/jwks.json`;
+      const response = await axios.get(jwksUrl);
+      return response.data.keys;
+  } catch (error) {
+      console.error("Error fetching public keys:", error.message);
+      return null;
+  }
+}
+
+// Verify the JWS Signature
+async function verifySignature(header, payload, signature, iss) {
+  const keys = await fetchPublicKey(iss);
+  if (!keys || keys.length === 0) return false;
+
+  try {
+      // Convert JWK to a Key Object
+      const keyStore = jose.createLocalJWKSet({ keys });
+
+      // Verify JWS
+      await jose.compactVerify(`${header}.${payload}.${signature}`, keyStore);
+      
+      return true; 
+  } catch (error) {
+      console.error("Signature verification failed:", error.message);
+      return false;
+  }
+}
 
 Meteor.methods({
  async "decryptScannedData"(shcData) {
@@ -88,17 +120,24 @@ Meteor.methods({
 
         // Step 5: Verify the issuer
         const iss = payloadJson.iss;
-        let isVerified;
+        let isVerifiedIssuer;
         try{
-            isVerified = await verifyIss(iss);
+            isVerifiedIssuer = await verifyIss(iss);
         }
         catch(err){
-            isVerified = false;  
+            isVerifiedIssuer = false;  
           console.log("Error in verifying issuer: ", err.message);
         }
 
+        let isSignatureValid = false;
+        try {
+            isSignatureValid = await verifySignature(header, payload, signature, iss);
+        } catch (err) {
+            console.log("Error verifying signature:", err.message);
+        }
+
     
-        return JSON.stringify({ header: headerJson, payload: payloadJson, isVerified: isVerified, qrCode: initCode });
+        return JSON.stringify({ header: headerJson, payload: payloadJson, isVerified: isVerifiedIssuer && isSignatureValid, qrCode: initCode });
       } catch (err) {
         console.error("Error decoding SMART Health Card:", err.message);
         return null;
