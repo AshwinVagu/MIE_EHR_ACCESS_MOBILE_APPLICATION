@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PatientSmartCard from "./PatientSmartCard";
 import { MedicalServices, Info, Medication, HistoryEdu } from "@mui/icons-material";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
@@ -10,25 +10,36 @@ export const SmartCardReading = () => {
   // if (!patient || !patient.conditions) return <p>Loading...</p>;
 
   const navigate = useNavigate();
+  
+  const [patientData, setPatientData] = useState([]);
 
   handleScannerButton = () => {
-    console.log("Scanner button clicked");
     navigate("/qr-scanner");
   };
 
-  const patientData = [];
+  useEffect(() => { 
+    async function fetchData() {
+      try {
+        const res = await Meteor.callAsync("bundleData.getByUserId", '12345');
+        setPatientData(res);
+      } catch (err) {
+        console.log("Error:", err); 
+      }
+    }  
+    fetchData();
+  }, []);
+
 
   return (
     <div>
     
-      <Typography variant="h5" align="center" gutterBottom>
+      <Typography variant="h4" align="center" gutterBottom>
         Medical Summary for Patient
       </Typography>
       <Stack spacing={2} direction="column" sx={{ maxWidth: 300, margin: "20px auto" }}>
       <Button
         variant="contained"
         color="primary"
-        // onClick={() => handleButtonClick("Button 1")}
       >
         Add Health Record Data
       </Button>
@@ -41,18 +52,21 @@ export const SmartCardReading = () => {
         Scan SMART Card
       </Button>
     </Stack>
+
+    {patientData.length==0 && <Typography align="center" variant="h5" color="gray" gutterBottom>
+        You have no cards added yet! Scan or manually add your health data.
+      </Typography>}
     <div style={{ padding: "10px", maxWidth: "100%", margin: "0 auto" }}>
 
       <Grid container sx={{ gap: 2 }} justifyContent="center">
-        {patientData.map((condition, index) => (
-          <Grid xs={12} sm={6} md={4} key={index} sx={{marginBottom: "16px"}}>
-            
+        {patientData.map((item, index) => (
+          <Grid xs={12} sm={6} md={4} key={index}>
+            <PatientSmartCard data={item['bundle_data']} />
           </Grid>
         ))}
       </Grid>
       </div>
      
-     {/* <PatientSmartCard patient={patientData} /> */}
     </div>
   );
 };

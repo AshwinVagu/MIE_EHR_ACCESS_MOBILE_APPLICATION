@@ -5,6 +5,7 @@ import { EHRDataRetrieval } from './EHRDataRetrieval.jsx';
 import { SmartCardReading } from './SmartCardReading.jsx'; 
 import QRScanner from './QRScanner.jsx';
 import BottomTabs from "./BottomTabs";
+import { AuthCode } from './authCode.jsx';
 
 const Home = () => {
   return (
@@ -15,6 +16,7 @@ const Home = () => {
             <Route path="/ehr-data-retrieval" element={<EHRDataRetrieval />} />
             <Route path="/smart-card-reading" element={<SmartCardReading />} />
             <Route path="/qr-scanner" element={<QRScanner />} />
+            <Route path="/code" element={<AuthCode />} />
           </Routes>
         </div>
         <BottomTabs />
