@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import qs from "querystring";
 import { OAuth2 } from "oauth";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const AuthCode = () => {
   const [accessToken, setAccessToken] = useState(null);
   const clientID = "MIE-localhost";
   const clientSecret = process.env.CLIENT_SECRET;
   const authBaseURL = "https://ashwinvagu.webch.art";
+  const navigate = useNavigate();
 
 
   useEffect(() => {
@@ -33,24 +35,16 @@ export const AuthCode = () => {
             console.error("OAuth Error:", err);
             return;
           }
-          localStorage.setItem("access_token", access_token);
+          localStorage.setItem("webchart_access_token", access_token);
+          localStorage.setItem("webchart_token_results", JSON.stringify(results));
           setAccessToken(access_token);
-          fetchMedicalData(access_token);
+          navigate("/ehr-resource-types");
+          // fetchMedicalData(access_token);
         }
       );
     }
   }, []);
 
-
-  const fetchMedicalData = async (access_token) => {
-
-    try {
-      const res = await Meteor.callAsync("ehrData.get", access_token);
-      console.log("Data obtained:", res);
-    } catch (err) {
-      console.log("Error:", err); 
-    }
-  };
 
 
   return (
