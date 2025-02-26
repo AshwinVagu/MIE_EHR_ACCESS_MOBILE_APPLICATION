@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardActionArea, CardContent, Typography, Box } from "@mui/material";
-import qs from "querystring";
-import { OAuth2 } from "oauth";
+import { Card, CardActionArea, CardContent, Typography, Box, CircularProgress } from "@mui/material";
+import FHIRResourceCard from "./FHIRResourceCard";
+import { Meteor } from "meteor/meteor";
+import {CLIENT_SECRET} from "../../credentials/secrets.js"; 
 
 export const EHRDataRetrieval = () => {
-
-  const [clientSecret, setClientSecret] = useState(process.env.CLIENT_SECRET || "");
-  const clientID = "MIE-localhost";
+  const [clientSecret, setClientSecret] = useState(CLIENT_SECRET || "");
+  const [medicalData, setMedicalData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const authBaseURL = "https://ashwinvagu.webch.art";
+  const clientID = "MIE-localhost";
 
+  // Prompt user for client secret if not provided
   useEffect(() => {
     if (!clientSecret) {
       const userSecret = prompt("Enter the client secret:");
@@ -16,57 +19,88 @@ export const EHRDataRetrieval = () => {
     }
   }, []);
 
+  // Fetch data on page load (not dependent on client secret)
+  useEffect(() => {
+    fetchMedicalData();
+  }, []);
+
+  const fetchMedicalData = async () => {
+    setLoading(true);
+    try {
+      const records = await Meteor.callAsync("resourceData.getByUserId", "12345");
+      console.log("Fetched records:", records);
+      // Extract only the resource_data field for FHIRResourceCard
+      const formattedData = records.map(record => record.resource_data);
+      setMedicalData(formattedData);
+    } catch (error) {
+      console.error("Error fetching medical data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAuth = () => {
     if (!clientSecret) {
       alert("Client Secret is required to proceed.");
       return;
     }
 
-    // Initialize OAuth2 instance
-    const oauth2 = new OAuth2(
-      clientID,
-      clientSecret,
-      authBaseURL,
-      "/webchart.cgi/oauth/authenticate/",
-      "/webchart.cgi/oauth/token/",
-      null
-    );
-
-    // Generate OAuth authorization URL
-    const authURL = oauth2.getAuthorizeUrl({
-      response_type: "code",
-      redirect_uri: window.location.origin + "/code",
-      scope: "launch/patient openid fhirUser offline_access patient/*.read",
-      state: "secure_random_state",
-      aud: `${authBaseURL}/webchart.cgi`,
-    });
-
-    console.log("Redirecting to:", authURL);
-    window.location.href = authURL; // Redirect user to WebChart authentication
+    window.location.href = `${authBaseURL}/webchart.cgi/oauth/authenticate/?response_type=code&client_id=${clientID}&redirect_uri=${window.location.origin}/code&scope=launch/patient openid fhirUser offline_access patient/*.read&state=secure_random_state&aud=${authBaseURL}/webchart.cgi`;
   };
 
-
   return (
-    <div>
-      <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <Card sx={{ maxWidth: "90%", borderRadius: 2, boxShadow: 3 }}>
-      <CardActionArea sx={{ display: "flex", alignItems: "center", p: 2 }} onClick={handleAuth}>
-        <Typography variant="h6" sx={{ flexGrow: 1, marginRight: '5px' }}>
-          Get data from WebChart
+    <Box sx={{ padding: 2, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {/* Authentication Card (Full Width on Mobile) */}
+      <Card 
+        sx={{
+          width: "100%", 
+          maxWidth: 400, 
+          borderRadius: 3, 
+          boxShadow: 3, 
+          marginBottom: 3, 
+          backgroundColor: "#f8f9fa"
+        }}
+      >
+        <CardActionArea sx={{ display: "flex", alignItems: "center", padding: 2 }} onClick={handleAuth}>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontSize: 18, fontWeight: "bold" }}>
+            Get Data from WebChart
+          </Typography>
+          <Box
+            component="img"
+            sx={{ width: 50, height: "auto", marginLeft: 1 }}
+            src="../../assets/wc_logo_full.png"
+            alt="WebChart Logo"
+          />
+        </CardActionArea>
+      </Card>
+
+      {/* Loading State */}
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
+          <CircularProgress size={40} />
+        </Box>
+      )}
+
+      {/* Display Retrieved Data */}
+      {!loading && medicalData.length > 0 && (
+        <Box sx={{ width: "100%", maxWidth: 500 }}>
+          <Typography variant="h5" sx={{ fontWeight: "bold", marginBottom: 2, textAlign: "center" }}>
+            Retrieved Medical Data
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {medicalData.map((resource, index) => (
+              <FHIRResourceCard key={index} resource={resource} />
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      {/* No Data Message */}
+      {!loading && medicalData.length === 0 && (
+        <Typography variant="h6" sx={{ textAlign: "center", marginTop: 3, fontSize: 16 }}>
+          No medical data available.
         </Typography>
-        <Box
-          component="img"
-          src="../../assets/wc_logo_full.png"
-          alt="WebChart Logo"
-        />
-      </CardActionArea>
-    </Card>
+      )}
     </Box>
-    </div>
   );
 };
