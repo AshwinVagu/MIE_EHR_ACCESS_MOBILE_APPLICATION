@@ -55,10 +55,10 @@ export const ResourceTypeForm = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         console.log("Submitted Data:", formData);
-        await fetchMedicalData(patient_info.access_token, type, formData);
+        await fetchPatientMedicalData(patient_info.access_token, type, formData);
     };
 
-    const fetchMedicalData = async (access_token, resourceType, filters) => {
+    const fetchPatientMedicalData = async (access_token, resourceType, filters) => {
         try {
             const res = await Meteor.callAsync("ehrData.get", access_token, resourceType, filters);
             console.log("Patient Medical Data obtained:", res);
@@ -105,6 +105,19 @@ export const ResourceTypeForm = () => {
         try {
             const response = await Meteor.callAsync("resourceData.bulkInsert", preparedResources);
             if(response.status === "success") {
+                if (window.plugins && window.plugins.toast) {
+                    window.plugins.toast.showWithOptions(
+                      {
+                        message: "Data from your EHR provider has been successfully added to this application.",
+                        duration: "short", // or 'long'
+                        position: "bottom",
+                      },
+                      () => navigate("/ehr-data-retrieval"), // Success callback
+                      (err) => console.error("Toast failed", err) // Error callback
+                    );
+                  } else {
+                    console.error("Cordova toast plugin not available.");
+                  }
                 navigate("/ehr-data-retrieval");
             }
         } catch (error) {
