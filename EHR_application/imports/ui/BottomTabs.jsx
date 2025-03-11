@@ -16,7 +16,7 @@ const BottomTabs = () => {
         showLabels
         sx={{ position: "fixed", bottom: 0, width: "100%", backgroundColor: "#fff", borderTop: "1px solid #ddd" }}
       >
-        <BottomNavigationAction label="Overview" value="/" icon={<HomeIcon />} />
+        <BottomNavigationAction label="Overview" value="/home" icon={<HomeIcon />} />
         <BottomNavigationAction label="Add Data" value="/ehr-data-retrieval" icon={<AccountCircleIcon />} />
         <BottomNavigationAction label="Smart Cards" value="/smart-card-reading" icon={<SettingsIcon />} />
       </BottomNavigation>

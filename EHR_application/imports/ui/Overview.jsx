@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { FaApple } from "react-icons/fa";
 import { HealthKitBarchart } from "./HealthKitBarchart"; // Import the bar chart component
 import { BMIGauge } from "./BMIGuage";
+import { CircularProgressChart } from "./CircularProgressChart";
+import { LineGraph } from "./LineGraph";
 
 export const Overview = () => {
   const allDataTypes = [
@@ -184,6 +186,13 @@ export const Overview = () => {
         <FaApple style={styles.icon} /> {shouldOpenSettings ? "Open HealthKit Settings" : "Grant / Update HealthKit Access"}
       </button>
 
+      {healthData["HKQuantityTypeIdentifierOxygenSaturation"] && (
+        <div style={styles.chartContainer}>
+          <h3 style={styles.chartTitle}>Latest Oxygen Saturation (SpO2)</h3>
+          <CircularProgressChart value={healthData["HKQuantityTypeIdentifierOxygenSaturation"][0]["quantity"]*100} unit="%" />
+        </div>
+      )}
+
       {/* Render Bar Chart if ActiveEnergyBurned data exists */}
       {healthData["HKQuantityTypeIdentifierActiveEnergyBurned"] && (
         <div style={styles.chartContainer}>
@@ -192,12 +201,20 @@ export const Overview = () => {
         </div>
       )}
 
-      {healthData["HKQuantityTypeIdentifierBodyMassIndex"] && (
+      {healthData["HKQuantityTypeIdentifierBodyMassIndex"] && healthData["HKQuantityTypeIdentifierBodyMassIndex"].length>0  && (
         <div style={styles.chartContainer}>
           <h3 style={styles.chartTitle}>Your current Body Mass Index</h3>
           <BMIGauge bmi={healthData["HKQuantityTypeIdentifierBodyMassIndex"][0]["quantity"]} />
         </div>
       )}
+
+      {healthData["HKQuantityTypeIdentifierHeartRate"] && (
+        <div style={styles.chartContainer}>
+          <h3 style={styles.chartTitle}>Heartrate for the last 7 days</h3>
+          <LineGraph dataPoints={healthData["HKQuantityTypeIdentifierHeartRate"]}  unit="bpm"/>
+        </div>
+      )}
+
 
       {healthData["HKQuantityTypeIdentifierDistanceWalkingRunning"] && (
         <div style={styles.chartContainer}>
