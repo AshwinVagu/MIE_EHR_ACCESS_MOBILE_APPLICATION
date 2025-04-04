@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { loginWithEmail } from "../api/auth";
 import { useNavigate } from "react-router-dom";
+import { Meteor } from "meteor/meteor";
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -11,10 +12,42 @@ export const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     const result = await loginWithEmail(email, password);
-    console.log(result);
+
+    const idToken = result.data.idToken;
+
     if (result.success) {
-      setMessage("Login Successful!");
-      setTimeout(() => navigate("/home"), 1500); // Redirect to dashboard
+      const user_id = result.data.localId;
+
+      try {
+        const userProfile = await Meteor.callAsync("users.getById", user_id);
+        console.log("User profile fetched:", userProfile);
+
+        localStorage.setItem("user_profile", JSON.stringify(userProfile));
+        localStorage.setItem("user_id", user_id);
+        localStorage.setItem("auth_id_token", JSON.stringify(idToken));
+
+        if (window.plugins && window.plugins.toast) {
+          window.plugins.toast.showWithOptions(
+            {
+              message: "Login & Profile Loaded!",
+              duration: "short",
+              position: "bottom",
+            },
+            () => navigate("/home"),
+            (err) => {
+              console.error("Toast failed", err);
+              navigate("/home");
+            }
+          );
+        } else {
+          navigate("/home");
+        }
+
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+        setMessage(`Login succeeded but profile fetch failed: ${err.message}`);
+      }
+
     } else {
       setMessage(`Error: ${result.error}`);
     }
