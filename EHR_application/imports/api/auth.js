@@ -35,3 +35,21 @@ export const signUpWithEmail = async (email, password) => {
     }
     return {data, success: true};
   };
+
+  export const deleteFirebaseUser = async (idToken) => {
+    const apiKey = FIREBASE_API_KEY;
+    const url = `https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`;
+  
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+  
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+    return { success: true, data };
+  };
+

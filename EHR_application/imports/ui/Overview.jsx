@@ -186,7 +186,7 @@ export const Overview = () => {
         <FaApple style={styles.icon} /> {shouldOpenSettings ? "Open HealthKit Settings" : "Grant / Update HealthKit Access"}
       </button>
 
-      {healthData["HKQuantityTypeIdentifierOxygenSaturation"] && (
+      {healthData["HKQuantityTypeIdentifierOxygenSaturation"] && healthData["HKQuantityTypeIdentifierOxygenSaturation"].length>0  && (
         <div style={styles.chartContainer}>
           <h3 style={styles.chartTitle}>Latest Oxygen Saturation (SpO2)</h3>
           <CircularProgressChart value={healthData["HKQuantityTypeIdentifierOxygenSaturation"][0]["quantity"]*100} unit="%" />

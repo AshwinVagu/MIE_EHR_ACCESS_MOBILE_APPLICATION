@@ -5,8 +5,10 @@ import '/imports/api/cameraScanningOperations';
 import '/imports/api/bundleData';
 import '/imports/api/ehrDataAccess';
 import '/imports/api/resourceData';
+import '/imports/api/usersData.js';
 import { BundleDataCollection } from '/imports/api/bundleDataCollection';
 import { ResourceDataCollection } from '/imports/api/resourceDataCollection';
+import { UsersData } from '/imports/api/usersDataCollection.js';
 
 async function insertLink({ title, url }) {
   await LinksCollection.insertAsync({ title, url, createdAt: new Date() });
@@ -48,6 +50,10 @@ Meteor.startup(async () => {
 
   Meteor.publish('fhir_resource_data', function () {
     return ResourceDataCollection.find();
+  });
+
+  Meteor.publish('users_data', function () {
+    return UsersData.find();
   });
 
 });
