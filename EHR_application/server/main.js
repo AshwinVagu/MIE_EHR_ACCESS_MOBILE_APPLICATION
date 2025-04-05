@@ -6,6 +6,7 @@ import '/imports/api/bundleData';
 import '/imports/api/ehrDataAccess';
 import '/imports/api/resourceData';
 import '/imports/api/usersData.js';
+import './gcsMethods.js';
 import { BundleDataCollection } from '/imports/api/bundleDataCollection';
 import { ResourceDataCollection } from '/imports/api/resourceDataCollection';
 import { UsersData } from '/imports/api/usersDataCollection.js';

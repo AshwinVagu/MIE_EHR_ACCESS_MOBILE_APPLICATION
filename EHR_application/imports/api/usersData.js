@@ -61,18 +61,6 @@ Meteor.methods({
   }
 },
 async 'users.update'(user) {
-    check(user, {
-      user_id: String,
-      first_name: String,
-      last_name: String,
-      email: String,
-      mobile: String,
-      age: Number,
-      height: Number,
-      weight: Number,
-      created_at: Match.Optional(String),
-      updated_at: String,
-    });
 
     const { user_id, ...updateFields } = user;
 

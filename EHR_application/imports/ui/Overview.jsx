@@ -20,10 +20,43 @@ export const Overview = () => {
   const [healthData, setHealthData] = useState({});
   const [permissionsChecked, setPermissionsChecked] = useState(false);
   const [shouldOpenSettings, setShouldOpenSettings] = useState(false);
+  const [noHealthData, setNoHealthData] = useState(false);
+  const [sourceMatch, setSourceMatch] = useState(true); // assume match by default
+  const [currentSourceBundleId, setCurrentSourceBundleId] = useState(null);
 
   useEffect(() => {
     checkHealthKitPermissions();
   }, []);
+
+
+  const handleAcceptDevice = async () => {
+    const userProfile = JSON.parse(localStorage.getItem("user_profile"));
+    const user_id = userProfile?.user_id;
+  
+    if (!user_id || !currentSourceBundleId) return;
+  
+    const updatePayload = {
+      ...userProfile,
+      updated_at: new Date().toISOString(),
+      HKsourceBundleId: currentSourceBundleId
+    };
+  
+    try {
+      const res = await Meteor.callAsync("users.update", updatePayload);
+      if(res.success) { 
+        const updatedProfile = { ...userProfile, HKsourceBundleId: currentSourceBundleId };
+        localStorage.setItem("user_profile", JSON.stringify(updatedProfile)); 
+        console.log("Device accepted, user profile updated");
+        setSourceMatch(true); // Refresh display
+      }
+      else{
+        console.log("Update failed. Please try again.");
+      }
+  
+    } catch (err) {
+      console.error("Failed to update sourceBundleId:", err);
+    }
+  };
 
   const checkHealthKitPermissions = () => {
     if (window.plugins && window.plugins.healthkit) {
@@ -128,6 +161,35 @@ export const Overview = () => {
 
           console.log("HealthKit Data Retrieved:", dataObj);
           setHealthData(dataObj);
+
+          const allEmpty = Object.values(dataObj).every(arr => Array.isArray(arr) && arr.length === 0);
+          setNoHealthData(allEmpty);
+
+          if (!allEmpty) {
+            const firstValidEntry = Object.values(dataObj)
+              .flat()
+              .find(entry => entry?.sourceBundleId);
+          
+            if (firstValidEntry) {
+              const hkSourceBundleId = firstValidEntry.sourceBundleId;
+              const userProfile = JSON.parse(localStorage.getItem("user_profile"));
+              const storedBundleId = userProfile?.HKsourceBundleId;
+          
+              setCurrentSourceBundleId(hkSourceBundleId); // save for potential update
+          
+              if (storedBundleId && storedBundleId === hkSourceBundleId) {
+                console.log("match");
+                setSourceMatch(true);
+              } else {
+                console.log("no match");
+                setSourceMatch(false);
+              }
+            } else {
+              console.log("No valid sourceBundleId found in HealthKit data.");
+              setSourceMatch(false);
+            }
+          }
+
         })
         .catch((error) => console.error("Error fetching HealthKit data:", error));
     } else {
@@ -182,11 +244,30 @@ export const Overview = () => {
         </p>
       )}
 
-      <button onClick={updateHealthKitPermissions} style={styles.button}>
-        <FaApple style={styles.icon} /> {shouldOpenSettings ? "Open HealthKit Settings" : "Grant / Update HealthKit Access"}
-      </button>
+      {permissionsChecked && !noHealthData && !sourceMatch && (
+        <div style={styles.buttonContainer}>
+          <button
+            onClick={handleAcceptDevice}
+            style={styles.button}
+          >
+            Accept HealthKit data from this device?
+          </button>
+        </div>
+      )}
 
-      {healthData["HKQuantityTypeIdentifierOxygenSaturation"] && healthData["HKQuantityTypeIdentifierOxygenSaturation"].length>0  && (
+      {permissionsChecked && grantedDataTypes.length > 0 && noHealthData && (
+        <p style={styles.errorText}>
+          No HealthKit data received. Try again later or check device permissions.
+        </p>
+      )}
+
+      <div style={styles.buttonContainer}>
+        <button onClick={updateHealthKitPermissions} style={styles.button}>
+          <FaApple style={styles.icon} /> {shouldOpenSettings ? "Open HealthKit Settings" : "Grant / Update HealthKit Access"}
+        </button>
+      </div>
+
+      {!noHealthData && sourceMatch && healthData["HKQuantityTypeIdentifierOxygenSaturation"] && healthData["HKQuantityTypeIdentifierOxygenSaturation"].length>0  && (
         <div style={styles.chartContainer}>
           <h3 style={styles.chartTitle}>Latest Oxygen Saturation (SpO2)</h3>
           <CircularProgressChart value={healthData["HKQuantityTypeIdentifierOxygenSaturation"][0]["quantity"]*100} unit="%" />
@@ -194,21 +275,21 @@ export const Overview = () => {
       )}
 
       {/* Render Bar Chart if ActiveEnergyBurned data exists */}
-      {healthData["HKQuantityTypeIdentifierActiveEnergyBurned"] && (
+      {!noHealthData && sourceMatch && healthData["HKQuantityTypeIdentifierActiveEnergyBurned"] && (
         <div style={styles.chartContainer}>
           <h3 style={styles.chartTitle}>Active Energy Burned in Kcal (Last 7 Days)</h3>
           <HealthKitBarchart rawData={healthData["HKQuantityTypeIdentifierActiveEnergyBurned"]} unit="kcal" />
         </div>
       )}
 
-      {healthData["HKQuantityTypeIdentifierBodyMassIndex"] && healthData["HKQuantityTypeIdentifierBodyMassIndex"].length>0  && (
+      {!noHealthData && sourceMatch && healthData["HKQuantityTypeIdentifierBodyMassIndex"] && healthData["HKQuantityTypeIdentifierBodyMassIndex"].length>0  && (
         <div style={styles.chartContainer}>
           <h3 style={styles.chartTitle}>Your current Body Mass Index</h3>
           <BMIGauge bmi={healthData["HKQuantityTypeIdentifierBodyMassIndex"][0]["quantity"]} />
         </div>
       )}
 
-      {healthData["HKQuantityTypeIdentifierHeartRate"] && (
+      {!noHealthData && sourceMatch && healthData["HKQuantityTypeIdentifierHeartRate"] && (
         <div style={styles.chartContainer}>
           <h3 style={styles.chartTitle}>Heartrate for the last 7 days</h3>
           <LineGraph dataPoints={healthData["HKQuantityTypeIdentifierHeartRate"]}  unit="bpm"/>
@@ -216,14 +297,14 @@ export const Overview = () => {
       )}
 
 
-      {healthData["HKQuantityTypeIdentifierDistanceWalkingRunning"] && (
+      {!noHealthData && sourceMatch && healthData["HKQuantityTypeIdentifierDistanceWalkingRunning"] && (
         <div style={styles.chartContainer}>
           <h3 style={styles.chartTitle}>Active movement in meters (Last 7 Days)</h3>
           <HealthKitBarchart rawData={healthData["HKQuantityTypeIdentifierDistanceWalkingRunning"]} unit="m" />
         </div>
       )}
 
-      {healthData["HKQuantityTypeIdentifierStepCount"] && (
+      {!noHealthData && sourceMatch && healthData["HKQuantityTypeIdentifierStepCount"] && (
         <div style={styles.chartContainer}>
           <h3 style={styles.chartTitle}>Active steps taken (Last 7 Days)</h3>
           <HealthKitBarchart rawData={healthData["HKQuantityTypeIdentifierStepCount"]} unit="steps" />
@@ -277,8 +358,10 @@ const styles = {
   },
   buttonContainer: {
     display: "flex",
-    justifyContent: "center", 
-    marginTop: "20px",
+    justifyContent: "center",
+    width: "90%",
+    maxWidth: "300px",
+    margin: "20px auto",  
   },
   button: {
     display: "flex",
@@ -288,15 +371,14 @@ const styles = {
     color: "#fff",
     border: "none",
     padding: "12px 20px",
-    fontSize: "18px",
+    fontSize: "16px",
     fontWeight: "bold",
     borderRadius: "12px",
     cursor: "pointer",
     transition: "background 0.3s ease",
     outline: "none",
     boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-    width: "auto",
-    minWidth: "250px", // Ensures button width consistency
+    width: "100%",               
     textAlign: "center",
   },
   icon: {
