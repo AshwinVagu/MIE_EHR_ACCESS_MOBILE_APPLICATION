@@ -39,85 +39,15 @@ export const ProfilePage = () => {
         const file = e.target.files?.[0];
         if (file && file.type.startsWith("image/")) {
             setSelectedFile(file);
-            // Immediately attempt upload after selection
-            handleUpload(file);
+            const previewUrl = URL.createObjectURL(file);
+            setFormData(prev => ({ ...prev, avatar: previewUrl })); // Temporary preview
         } else if (file) {
             setMessage("Please select a valid image file.");
             setSelectedFile(null); 
         }
-       
+    
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
-        }
-    };
-
-    // --- Upload to GCS Handler ---
-    const handleUpload = async (file) => {
-        if (!file) return;
-
-        const userId = localStorage.getItem("user_id");
-        if (!userId) {
-            setMessage("User ID not found. Cannot upload.");
-            return;
-        }
-
-        setUploading(true);
-        setMessage("Uploading image...");
-        setSelectedFile(null);
-
-        const objectName = `${userId}_dp`; 
-
-        try {
-    
-            const signedUrlResponse = await Meteor.callAsync("gcs.generateSignedUploadUrl", {
-                userId: userId,
-                objectName: objectName,
-                contentType: file.type,
-                bucketName: GCS_BUCKET_NAME, 
-            });
-
-            if (!signedUrlResponse || !signedUrlResponse.signedUrl) {
-                throw new Error("Failed to get upload URL from server.");
-            }
-
-            const { signedUrl } = signedUrlResponse;
-
-            console.log("Received signed URL:", signedUrl);
-            
-            const timestamp = Date.now();
-            const publicUrl = `${getGcsPublicUrl(GCS_BUCKET_NAME, objectName)}?v=${timestamp}`;
-
-            console.log("Public URL:", publicUrl);
-
-
-            // Upload file directly to GCS using the Signed URL
-            const uploadResponse = await fetch(signedUrl, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": file.type,
-                },
-                body: file,
-            });
-
-            if (!uploadResponse.ok) {
-                let errorDetails = `HTTP status ${uploadResponse.status}`;
-                try {
-                    const textResponse = await uploadResponse.text();
-                    errorDetails += `: ${textResponse}`;
-                } catch (_) { /* Ignore if cannot read response */ }
-                throw new Error(`GCS upload failed: ${errorDetails}`);
-            }
-
-            const updatedFormData = { ...formData, avatar: publicUrl };
-            setFormData(updatedFormData);
-
-            setMessage("Image uploaded successfully!"); // Clear previous message
-
-        } catch (err) {
-            console.error("Upload failed:", err);
-            setMessage(`Upload failed: ${err.message}`);
-        } finally {
-            setUploading(false);
         }
     };
 
@@ -127,14 +57,65 @@ export const ProfilePage = () => {
         if (!dataToSave) return;
 
         setMessage(""); 
+        let avatarUrl = formData.avatar;
+
+        // Upload only if a new image file was selected (not already a GCS URL)
+        if (selectedFile && !avatarUrl?.includes("storage.googleapis.com")) {
+            try {
+                setUploading(true);
+                setMessage("Uploading image...");
+
+                const userId = localStorage.getItem("user_id");
+                const objectName = `${userId}_dp`;
+
+                const signedUrlResponse = await Meteor.callAsync("gcs.generateSignedUploadUrl", {
+                    userId,
+                    objectName,
+                    contentType: selectedFile.type,
+                    bucketName: GCS_BUCKET_NAME,
+                });
+
+                if (!signedUrlResponse || !signedUrlResponse.signedUrl) {
+                    throw new Error("Failed to get upload URL.");
+                }
+
+                const uploadResponse = await fetch(signedUrlResponse.signedUrl, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": selectedFile.type,
+                    },
+                    body: selectedFile,
+                });
+
+                if (!uploadResponse.ok) {
+                    let errorDetails = `HTTP status ${uploadResponse.status}`;
+                    try {
+                        const textResponse = await uploadResponse.text();
+                        errorDetails += `: ${textResponse}`;
+                    } catch (_) {}
+                    throw new Error(`GCS upload failed: ${errorDetails}`);
+                }
+
+                setUploading(false);
+
+                const timestamp = Date.now();
+                avatarUrl = `${getGcsPublicUrl(GCS_BUCKET_NAME, objectName)}?v=${timestamp}`;
+            } catch (uploadErr) {
+                setUploading(false);
+                setMessage(`Image upload failed: ${uploadErr.message}`);
+                return;
+            }
+        }
+
         const payload = {
             ...dataToSave,
-            // Make sure 'avatar' field from dataToSave is included
+            avatar: avatarUrl,
             age: dataToSave.age ? parseInt(dataToSave.age, 10) : null,
             height: dataToSave.height ? parseFloat(dataToSave.height) : null,
             weight: dataToSave.weight ? parseFloat(dataToSave.weight) : null,
             updated_at: new Date().toISOString(),
         };
+
 
         if (isNaN(payload.age)) payload.age = null;
         if (isNaN(payload.height)) payload.height = null;
@@ -291,7 +272,7 @@ export const ProfilePage = () => {
                             </button>
                             <button style={styles.cancelButton} onClick={() => {
                                 setEditing(false);
-                                
+                                setSelectedFile(null);
                                 const originalProfile = localStorage.getItem("user_profile");
                                 if (originalProfile) setFormData(JSON.parse(originalProfile));
                                 setMessage(""); // Clear messages on cancel
