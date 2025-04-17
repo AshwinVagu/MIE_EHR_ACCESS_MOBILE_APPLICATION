@@ -51,8 +51,11 @@ const QRScanner = () => {
   };
 
   const addScannedCard = async () => {
+    const userProfile = JSON.parse(localStorage.getItem("user_profile"));
+    const user_id = userProfile?.user_id;
+    
     let payload = {
-      user_id: "12345",
+      user_id: user_id,
       bundle_data: result,
       created_at: new Date(),
       updated_at: new Date()

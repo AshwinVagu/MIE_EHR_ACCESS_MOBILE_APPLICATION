@@ -20,7 +20,10 @@ export const SmartCardReading = () => {
   useEffect(() => { 
     async function fetchData() {
       try {
-        const res = await Meteor.callAsync("bundleData.getByUserId", '12345');
+        const userProfile = JSON.parse(localStorage.getItem("user_profile"));
+        const user_id = userProfile?.user_id;
+
+        const res = await Meteor.callAsync("bundleData.getByUserId", user_id);
         setPatientData(res);
       } catch (err) {
         console.log("Error:", err); 
