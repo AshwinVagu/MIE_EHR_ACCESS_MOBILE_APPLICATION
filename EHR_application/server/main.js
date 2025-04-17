@@ -10,6 +10,9 @@ import './gcsMethods.js';
 import { BundleDataCollection } from '/imports/api/bundleDataCollection';
 import { ResourceDataCollection } from '/imports/api/resourceDataCollection';
 import { UsersData } from '/imports/api/usersDataCollection.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 async function insertLink({ title, url }) {
   await LinksCollection.insertAsync({ title, url, createdAt: new Date() });

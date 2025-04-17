@@ -85,6 +85,9 @@ export const ResourceTypeForm = () => {
         }
     
         const server_url = (patient_info.smart_style_url).replace("/.well-known/smart-style", "");
+
+        const userProfile = JSON.parse(localStorage.getItem("user_profile"));
+        const user_id = userProfile?.user_id;
     
         // Prepare resources with unique FHIR keys
         const preparedResources = medicalData.map(resource => {
@@ -92,7 +95,7 @@ export const ResourceTypeForm = () => {
             
             return {
                 fhir_id: uniqueFHIRId,  
-                user_id: "12345",  
+                user_id: user_id,  
                 resource_data: resource,
                 created_at: new Date(),
                 updated_at: new Date()
@@ -105,6 +108,7 @@ export const ResourceTypeForm = () => {
         try {
             const response = await Meteor.callAsync("resourceData.bulkInsert", preparedResources);
             if(response.status === "success") {
+                console.log("Resources inserted successfully:", response);
                 if (window.plugins && window.plugins.toast) {
                     window.plugins.toast.showWithOptions(
                       {

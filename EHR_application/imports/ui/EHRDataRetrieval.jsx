@@ -3,6 +3,7 @@ import { Card, CardActionArea, CardContent, Typography, Box, CircularProgress } 
 import FHIRResourceCard from "./FHIRResourceCard";
 import { Meteor } from "meteor/meteor";
 import {CLIENT_SECRET} from "../../credentials/secrets.js"; 
+import { fetchWithOfflineFallback } from '../utils/cache.js'; // Adjust the import path as necessary
 
 export const EHRDataRetrieval = () => {
   const [clientSecret, setClientSecret] = useState(CLIENT_SECRET || "");
@@ -11,23 +12,22 @@ export const EHRDataRetrieval = () => {
   const authBaseURL = "https://ashwinvagu.webch.art";
   const clientID = "MIE-localhost";
 
-  // Prompt user for client secret if not provided
+  // Fetch data on page load (not dependent on client secret)
   useEffect(() => {
     if (!clientSecret) {
       const userSecret = prompt("Enter the client secret:");
       if (userSecret) setClientSecret(userSecret);
     }
-  }, []);
 
-  // Fetch data on page load (not dependent on client secret)
-  useEffect(() => {
     fetchMedicalData();
   }, []);
 
   const fetchMedicalData = async () => {
     setLoading(true);
     try {
-      const records = await Meteor.callAsync("resourceData.getByUserId", "12345");
+      const userProfile = JSON.parse(localStorage.getItem("user_profile"));
+      const user_id = userProfile?.user_id;
+      const records = await Meteor.callAsync("resourceData.getByUserId", user_id);
       console.log("Fetched records:", records);
       // Extract only the resource_data field for FHIRResourceCard
       const formattedData = records.map(record => record.resource_data);
