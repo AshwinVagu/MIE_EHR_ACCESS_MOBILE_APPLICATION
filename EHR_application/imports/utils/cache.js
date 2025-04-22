@@ -1,5 +1,6 @@
 // /imports/utils/cache.js
 import localforage from 'localforage';
+import { checkInternetConnectivity } from "./network.js";
 
 localforage.config({
   name: 'HealthApp',
@@ -13,7 +14,8 @@ localforage.config({
  * @returns {Promise<any>} - either fresh or cached data
  */
 export async function fetchWithOfflineFallback(key, fetchFn) {
-  const online = Meteor.status().connected;
+  
+  const online = await checkInternetConnectivity();
 
   console.log("Network status:", online ? "Online" : "Offline");
 
@@ -30,6 +32,19 @@ export async function fetchWithOfflineFallback(key, fetchFn) {
     }
   } else {
     const cached = await localforage.getItem(key);
+    if (window.plugins && window.plugins.toast) {
+      window.plugins.toast.showWithOptions(
+        {
+          message: "Network Offline! Fetching data from Offline storage.",
+          duration: "short", 
+          position: "bottom",
+        },
+        () => {}, // Success callback
+        (err) => console.error("Toast failed", err) // Error callback
+      );
+    } else {
+      console.error("Cordova toast plugin not available.");
+    }
     return { data: cached?.data ?? null, isOffline: true };
   }
 }

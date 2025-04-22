@@ -23,7 +23,13 @@ export const SmartCardReading = () => {
         const userProfile = JSON.parse(localStorage.getItem("user_profile"));
         const user_id = userProfile?.user_id;
 
-        const res = await Meteor.callAsync("bundleData.getByUserId", user_id);
+        const cacheKey = `medical_smart_card_data_cacheKey`;
+
+        const { data: res } = await fetchWithOfflineFallback(
+          cacheKey,
+          () => Meteor.callAsync("bundleData.getByUserId", user_id)
+        );
+
         setPatientData(res);
       } catch (err) {
         console.log("Error:", err); 

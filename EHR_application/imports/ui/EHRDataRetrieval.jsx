@@ -27,7 +27,13 @@ export const EHRDataRetrieval = () => {
     try {
       const userProfile = JSON.parse(localStorage.getItem("user_profile"));
       const user_id = userProfile?.user_id;
-      const records = await Meteor.callAsync("resourceData.getByUserId", user_id);
+      const cacheKey = `medical_fhir_data_cacheKey`;
+
+      const { data: records } = await fetchWithOfflineFallback(
+        cacheKey,
+        () => Meteor.callAsync("resourceData.getByUserId", user_id)
+      );
+
       console.log("Fetched records:", records);
       // Extract only the resource_data field for FHIRResourceCard
       const formattedData = records.map(record => record.resource_data);
