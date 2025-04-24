@@ -1,6 +1,8 @@
-import React from "react";
-import { Card, CardContent, Typography, Box, List, ListItem, ListItemText } from "@mui/material";
+import React, { useState } from "react";
+import { Card, CardContent, Typography, Box, List, ListItem, ListItemText, Button, Dialog, DialogContent } from "@mui/material";
 import Grid from "@mui/material/Grid2";
+import { QRCodeSVG } from "qrcode.react";
+import { Meteor } from "meteor/meteor";
 
 /**
  * Converts camelCase to properly spaced words.
@@ -45,11 +47,85 @@ const renderValue = (value) => {
     return <Typography variant="body2">{value || "N/A"}</Typography>;
 };
 
-const FHIRResourceCard = ({ resource }) => {
+const FHIRResourceCard = ({ resource , resourceId}) => {
+
+    const handleExportAsQR = async () => {
+        try {
+          const user_id = localStorage.getItem("user_id");
+          const objectName = `${user_id}_fhir_qr_${Date.now()}.json`;
+          const bucketName = "mie_fhir_mobile_app";
+    
+          // Step 1: Get signed upload URL
+          const { signedUrl } = await Meteor.callAsync("gcs.generateSignedUploadUrl", {
+            userId: user_id,
+            objectName,
+            contentType: "application/json",
+            bucketName,
+          });
+    
+          // Step 2: Upload FHIR resource
+          const uploadResponse = await fetch(signedUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(resource),
+          });
+    
+          if (!uploadResponse.ok) {
+            throw new Error("FHIR upload failed");
+          }
+    
+          // Step 3: Set QR Code URL
+          const publicUrl = `https://storage.googleapis.com/${bucketName}/${objectName}`;
+          setQrUrl(publicUrl);
+          setOpenDialog(true);
+        } catch (error) {
+          console.error("Error exporting FHIR data:", error);
+          alert("Failed to export FHIR data.");
+        }
+      };
+
+
+      const handleDelete = async () => {
+        try {
+          const confirm = window.confirm("Are you sure you want to delete this FHIR resource?");
+          if (!confirm) return;
+      
+          const user_id = localStorage.getItem("user_id");
+          const fhir_id = resourceId;
+
+          console.log("Deleting resource with ID:", resourceId);
+      
+          if (!fhir_id) {
+            alert("FHIR resource ID not found.");
+            return;
+          }
+      
+          const response = await Meteor.callAsync("resourceData.deleteByUserAndFhirId", {
+            user_id,
+            fhir_id,
+          });
+      
+          if (response?.status === "success") {
+            alert("Resource deleted successfully.");
+            window.location.reload(); // Refresh to re-fetch cards
+          } else {
+            throw new Error(response?.message || "Deletion failed");
+          }
+        } catch (err) {
+          console.error("Deletion error:", err);
+          alert("Failed to delete the FHIR resource.");
+        }
+      };
+
+    const [qrUrl, setQrUrl] = useState(null);
+    const [openDialog, setOpenDialog] = useState(false);
+
     if (!resource) return null;
 
     return (
-        <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
+        <Grid xs={12} sx={{ display: "flex", justifyContent: "center" }}>
             <Card
                 sx={{
                     width: "600px", 
@@ -72,8 +148,65 @@ const FHIRResourceCard = ({ resource }) => {
                             {renderValue(value)}
                         </Box>
                     ))}
+                    <Box sx={{ mt: 2, display: "flex", justifyContent: "center", gap: 2 }}>
+                        <Button variant="outlined" onClick={handleExportAsQR}>
+                            Export as QR
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={handleDelete}
+                        >
+                            Delete
+                        </Button>
+                    </Box>
                 </CardContent>
             </Card>
+            <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+                <DialogContent sx={{ textAlign: "center" }}>
+                    <Typography variant="h6" gutterBottom>Scan to Access FHIR Data</Typography>
+                    {qrUrl && (
+                    <>
+                        <QRCodeSVG value={qrUrl} size={256} />
+
+                        <Box sx={{ mt: 2 }}>
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                            Or copy this link:
+                        </Typography>
+
+                        <Box
+                            sx={{
+                            backgroundColor: "#f0f0f0",
+                            padding: "8px",
+                            borderRadius: "4px",
+                            fontFamily: "monospace",
+                            fontSize: "12px",
+                            wordBreak: "break-all",
+                            mb: 1,
+                            userSelect: "all",
+                            }}
+                        >
+                            {qrUrl}
+                        </Box>
+
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => {
+                            navigator.clipboard.writeText(qrUrl).then(() => {
+                                alert("Link copied to clipboard!");
+                            }).catch(() => {
+                                alert("Failed to copy link.");
+                            });
+                            }}
+                        >
+                            Copy to Clipboard
+                        </Button>
+                        </Box>
+                    </>
+                    )}
+                </DialogContent>
+            </Dialog>
         </Grid>
     );
 };
