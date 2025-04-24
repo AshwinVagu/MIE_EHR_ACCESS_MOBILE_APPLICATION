@@ -36,5 +36,17 @@ Meteor.methods({
       console.log('Error fetching resource data:', error);
       throw new Meteor.Error('fetch-failed', 'Failed to fetch resource data');
     }
+  },
+  'resourceData.deleteByUserAndFhirId'({ user_id, fhir_id }) {
+    check(user_id, String);
+    check(fhir_id, String);
+  
+    try {
+      const result = ResourceDataCollection.removeAsync({ user_id, fhir_id });
+      return { status: "success", deletedCount: result };
+    } catch (error) {
+      console.error("Error deleting resource:", error);
+      throw new Meteor.Error('delete-failed', 'Failed to delete FHIR resource');
+    }
   }
 });

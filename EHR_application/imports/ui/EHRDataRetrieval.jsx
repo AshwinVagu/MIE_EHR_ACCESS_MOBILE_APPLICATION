@@ -36,8 +36,7 @@ export const EHRDataRetrieval = () => {
 
       console.log("Fetched records:", records);
       // Extract only the resource_data field for FHIRResourceCard
-      const formattedData = records.map(record => record.resource_data);
-      setMedicalData(formattedData);
+      setMedicalData(records);
     } catch (error) {
       console.error("Error fetching medical data:", error);
     } finally {
@@ -95,7 +94,7 @@ export const EHRDataRetrieval = () => {
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {medicalData.map((resource, index) => (
-              <FHIRResourceCard key={index} resource={resource} />
+              <FHIRResourceCard key={index} resource={resource.resource_data} resourceId={resource.fhir_id}/>
             ))}
           </Box>
         </Box>
