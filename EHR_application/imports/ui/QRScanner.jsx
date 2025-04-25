@@ -88,15 +88,15 @@ const QRScanner = () => {
 
   return (
     <Box sx={{ textAlign: 'center', marginTop: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         Scan the QR code of your SMART Health Card!
       </Typography>
 
-      <Button variant="contained" color="primary" onClick={scanQRCode}>
+      <Button variant="contained" color="primary" onClick={scanQRCode}  sx={{ fontWeight: 'bold' }}>
         Scan QR Code
       </Button>
 
-      {result && <Typography variant="h5" gutterBottom>
+      {result && <Typography variant="h6" gutterBottom>
         Preview of your card contents:
       </Typography>}
 
@@ -108,7 +108,7 @@ const QRScanner = () => {
         </Typography>
       )}
 
-      <Button variant="contained" color="default" onClick={() => setResult(null)}>
+      <Button variant="contained" color="default" onClick={() => setResult(null)}  sx={{ fontWeight: 'bold', backgroundColor: "white", color: "#007bff", fontWeight: 'bold' }}>
         Reset Scanner
       </Button>
 
@@ -117,7 +117,7 @@ const QRScanner = () => {
       </Typography>}
 
       {result && (
-        <Button variant="contained" color="secondary" onClick={addScannedCard}>
+        <Button variant="contained" color="secondary" onClick={addScannedCard} sx={{ fontWeight: 'bold' }}>
           Add SMART Card to Personal Data
         </Button>
       )}

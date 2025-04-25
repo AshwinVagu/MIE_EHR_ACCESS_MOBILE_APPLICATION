@@ -31,7 +31,7 @@ const renderValue = (value) => {
                 <Box sx={{ paddingLeft: 2 }}>
                     {Object.entries(value).map(([subKey, subValue], index) => (
                         <Box key={index} sx={{ marginBottom: 1 }}>
-                            <Typography variant="body2" fontWeight="bold">
+                            <Typography variant="body2" fontWeight="bold" sx={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                                 {formatCamelCase(subKey)}:
                             </Typography>
                             <Box>{renderValue(subValue)}</Box>
@@ -42,9 +42,9 @@ const renderValue = (value) => {
         }
     }
     if(typeof value === "boolean") {
-        return <Typography variant="body2">{value ? "Yes" : "No"}</Typography>;
+        return <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{value ? "Yes" : "No"}</Typography>;
     }
-    return <Typography variant="body2">{value || "N/A"}</Typography>;
+    return <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{value || "N/A"}</Typography>;
 };
 
 const FHIRResourceCard = ({ resource , resourceId}) => {
@@ -125,37 +125,33 @@ const FHIRResourceCard = ({ resource , resourceId}) => {
     if (!resource) return null;
 
     return (
-        <Grid xs={12} sx={{ display: "flex", justifyContent: "center" }}>
+        <Box sx={{ width: '100%' }}>
             <Card
                 sx={{
-                    width: "600px", 
-                    maxWidth: "100%", 
-                    border: "2px solid #1976d2",
-                    borderRadius: "8px",
-                    boxShadow: "0px 4px 6px rgba(0,0,0,0.1)", 
-                    cursor: "pointer",
-                    transition: "0.3s",
-                    margin: "auto", 
-                    padding: 2,
-                }}
+                    margin: "auto",
+                    boxShadow: 3,
+                    borderRadius: 2,
+                    textAlign: 'left',
+                  }}
             >
                 <CardContent>
                     {Object.entries(resource).map(([key, value]) => (
                         <Box key={key} sx={{ marginBottom: 1 }}>
-                            <Typography variant="body1" fontWeight="bold">
+                            <Typography variant="body1" fontWeight="bold" sx={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                                 {formatCamelCase(key)}:
                             </Typography>
                             {renderValue(value)}
                         </Box>
                     ))}
                     <Box sx={{ mt: 2, display: "flex", justifyContent: "center", gap: 2 }}>
-                        <Button variant="outlined" onClick={handleExportAsQR}>
+                        <Button variant="outlined" onClick={handleExportAsQR} sx={{ fontWeight: 'bold' }}>
                             Export as QR
                         </Button>
                         <Button
                             variant="outlined"
                             color="error"
                             onClick={handleDelete}
+                            sx={{ fontWeight: 'bold' }}
                         >
                             Delete
                         </Button>
@@ -163,7 +159,7 @@ const FHIRResourceCard = ({ resource , resourceId}) => {
                 </CardContent>
             </Card>
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-                <DialogContent sx={{ textAlign: "center" }}>
+                <DialogContent sx={{ textAlign: "center"}}>
                     <Typography variant="h6" gutterBottom>Scan to Access FHIR Data</Typography>
                     {qrUrl && (
                     <>
@@ -199,6 +195,7 @@ const FHIRResourceCard = ({ resource , resourceId}) => {
                                 alert("Failed to copy link.");
                             });
                             }}
+                            sx={{ fontWeight: 'bold' }}
                         >
                             Copy to Clipboard
                         </Button>
@@ -207,7 +204,7 @@ const FHIRResourceCard = ({ resource , resourceId}) => {
                     )}
                 </DialogContent>
             </Dialog>
-        </Grid>
+        </Box>
     );
 };
 

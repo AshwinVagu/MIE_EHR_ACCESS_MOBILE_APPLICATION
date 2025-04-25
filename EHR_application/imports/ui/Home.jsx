@@ -19,7 +19,8 @@ const AppRoutes = () => {
 
   return (
     <>
-      <div style={{ paddingBottom: hideBottomTabs ? 0 : "56px" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div style={{ paddingBottom: hideBottomTabs ? 0 : "56px", flex: 1 }}>
         <Routes>
 
           <Route path="/profile" element={
@@ -63,6 +64,7 @@ const AppRoutes = () => {
         </Routes>
       </div>
       {!hideBottomTabs && <BottomTabs />}
+     </div>
     </>
   );
 };

@@ -26,6 +26,21 @@ Meteor.methods({
       console.log('Error fetching bundle data:', error);
       throw new Meteor.Error('fetch-failed', 'Failed to fetch bundle data');
     }
+  },
+  'bundleData.deleteByIdAndUser'({ user_id, id }) {
+    check(user_id, String);
+    check(id, String);
+  
+    try {
+      const result = BundleDataCollection.removeAsync({
+        user_id,
+        _id: id
+      });
+      return { status: "success", deletedCount: result };
+    } catch (error) {
+      console.error("Error deleting resource:", error);
+      throw new Meteor.Error('delete-failed', 'Failed to delete SMART card data');
+    }
   }
 
 });

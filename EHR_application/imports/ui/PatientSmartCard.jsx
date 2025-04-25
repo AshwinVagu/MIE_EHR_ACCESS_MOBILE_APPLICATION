@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, Typography, Box, IconButton, Collapse } from '@mui/material';
+import { Card, CardContent, CardHeader, Typography, Box, IconButton, Collapse, Button } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { QRCodeSVG } from 'qrcode.react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { Meteor } from 'meteor/meteor';
 
 const toTitleCase = (str) =>
   str.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
@@ -34,8 +35,38 @@ const renderField = (key, value) => {
   );
 };
 
-const PatientSmartCard = ({ data }) => {
+const PatientSmartCard = ({ data, objectId }) => {
   const [expanded, setExpanded] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      const confirmDelete = window.confirm("Are you sure you want to delete this SMART Health Card?");
+      if (!confirmDelete) return;
+  
+      const user_id = localStorage.getItem("user_id");
+      const id = objectId;
+  
+      if (!id) {
+        alert("FHIR resource ID not found.");
+        return;
+      }
+  
+      const response = await Meteor.callAsync("bundleData.deleteByIdAndUser", {
+        user_id,
+        id,
+      });
+  
+      if (response?.status === "success") {
+        alert("Resource deleted successfully.");
+        window.location.reload(); // Optionally re-fetch cards
+      } else {
+        throw new Error(response?.message || "Deletion failed");
+      }
+    } catch (err) {
+      console.error("Deletion error:", err);
+      alert("Failed to delete the SMART Health Card.");
+    }
+  };
 
   if (!data || typeof data !== 'object') {
     console.error('Invalid data format: Expected an object.');
@@ -93,6 +124,12 @@ const PatientSmartCard = ({ data }) => {
 
           
         </Collapse>
+
+        <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+          <Button variant="outlined" color="error" onClick={handleDelete} sx={{ fontWeight: 'bold' }}>
+            Delete
+          </Button>
+        </Box>
       </CardContent>
     </Card>
   );

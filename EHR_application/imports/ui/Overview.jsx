@@ -4,6 +4,7 @@ import { HealthKitBarchart } from "./HealthKitBarchart"; // Import the bar chart
 import { BMIGauge } from "./BMIGuage";
 import { CircularProgressChart } from "./CircularProgressChart";
 import { LineGraph } from "./LineGraph";
+import { set } from "lodash";
 
 export const Overview = () => {
   const allDataTypes = [
@@ -23,8 +24,11 @@ export const Overview = () => {
   const [noHealthData, setNoHealthData] = useState(false);
   const [sourceMatch, setSourceMatch] = useState(true); // assume match by default
   const [currentSourceBundleId, setCurrentSourceBundleId] = useState(null);
+  const [userData, setUserData] = useState({});
 
   useEffect(() => {
+    const userProfile = JSON.parse(localStorage.getItem("user_profile"));
+    setUserData(userProfile);
     checkHealthKitPermissions();
   }, []);
 
@@ -236,7 +240,7 @@ export const Overview = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>Health Data</h2>
+      <h2 style={styles.heading}>Hey {userData["first_name"]}! Here are you're health metrics!</h2>
 
       {permissionsChecked && grantedDataTypes.length == 0 && (
         <p style={styles.errorText}>
