@@ -4,6 +4,7 @@ import { MedicalServices, Info, Medication, HistoryEdu } from "@mui/icons-materi
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import { Card, CardContent, Typography, CardActions, Button, IconButton, Stack } from "@mui/material";
 import Grid from "@mui/material/Grid2"; // Updated import
+import { fetchWithOfflineFallback } from '../utils/cache.js';
 
 export const SmartCardReading = () => {
 
@@ -15,6 +16,10 @@ export const SmartCardReading = () => {
 
   handleScannerButton = () => {
     navigate("/qr-scanner");
+  };
+
+  handleHealthRecordAddition= () => {
+    navigate("/ehr-data-retrieval");
   };
 
   useEffect(() => { 
@@ -42,13 +47,15 @@ export const SmartCardReading = () => {
   return (
     <div>
     
-      <Typography variant="h4" align="center" gutterBottom>
-        Medical Summary for Patient
+      <Typography variant="h5" sx={{ fontWeight: "bold", marginBottom: 2, textAlign: "center" }} gutterBottom>
+        Your Scanned SMART Health Cards
       </Typography>
       <Stack spacing={2} direction="column" sx={{ maxWidth: 300, margin: "20px auto" }}>
       <Button
         variant="contained"
         color="primary"
+        onClick={() => handleHealthRecordAddition()}
+        sx={{ fontWeight: 'bold' }}
       >
         Add Health Record Data
       </Button>
@@ -57,6 +64,7 @@ export const SmartCardReading = () => {
         variant="contained"
         color="secondary"
         onClick={() => handleScannerButton()}
+        sx={{ fontWeight: 'bold' }}
       >
         Scan SMART Card
       </Button>
@@ -70,7 +78,7 @@ export const SmartCardReading = () => {
       <Grid container sx={{ gap: 2 }} justifyContent="center">
         {patientData.map((item, index) => (
           <Grid xs={12} sm={6} md={4} key={index}>
-            <PatientSmartCard data={item['bundle_data']} />
+            <PatientSmartCard data={item['bundle_data']} objectId={item['_id']} />
           </Grid>
         ))}
       </Grid>

@@ -267,7 +267,7 @@ export const ProfilePage = () => {
                 <div style={styles.buttonGroup}>
                     {editing ? (
                         <>
-                            <button style={styles.saveButton} onClick={() => handleSave()} disabled={uploading}>
+                            <button color="primary" style={styles.saveButton} onClick={() => handleSave()} disabled={uploading}>
                                 {uploading ? "Uploading..." : "Save"}
                             </button>
                             <button style={styles.cancelButton} onClick={() => {
@@ -313,7 +313,7 @@ const styles = {
     scrollContainer: {
         height: "100vh", 
         overflowY: "auto",
-        backgroundColor: "#fafafa",
+        backgroundColor: "#97caf7",
         padding: "16px",
         boxSizing: "border-box",
     },
@@ -403,6 +403,7 @@ const styles = {
         color: "#fff",
         border: "none",
         cursor: "pointer",
+        fontWeight: "bold",
         transition: "background-color 0.2s ease",
         ':hover': {
             backgroundColor: "#555",
@@ -413,10 +414,11 @@ const styles = {
         padding: "12px",
         fontSize: "15px",
         borderRadius: "8px",
-        backgroundColor: "#00796b", // Teal save button
+        backgroundColor: "#007bff",
         color: "#fff",
         border: "none",
         cursor: "pointer",
+        fontWeight: "bold",
         transition: "background-color 0.2s ease",
         ':hover': {
              backgroundColor: "#004d40",
@@ -435,6 +437,7 @@ const styles = {
         color: "#fff",
         border: "none",
         cursor: "pointer",
+        fontWeight: "bold",
         transition: "background-color 0.2s ease",
          ':hover': {
              backgroundColor: "#666",
@@ -503,7 +506,7 @@ const styles = {
         backgroundColor: "#fff",
         color: "#d32f2f", 
         fontSize: "16px",
-        fontWeight: "600",
+        fontWeight: "bold",
         border: "1px solid #d32f2f", 
         borderRadius: "8px",
         cursor: "pointer",

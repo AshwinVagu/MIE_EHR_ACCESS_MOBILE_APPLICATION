@@ -73,7 +73,7 @@ export const EHRDataRetrieval = () => {
           <Box
             component="img"
             sx={{ width: 50, height: "auto", marginLeft: 1 }}
-            src="../../assets/wc_logo_full.png"
+            src="https://www.webchartnow.com/gfx/png/wc_logo_full.png"
             alt="WebChart Logo"
           />
         </CardActionArea>
@@ -90,7 +90,7 @@ export const EHRDataRetrieval = () => {
       {!loading && medicalData.length > 0 && (
         <Box sx={{ width: "100%", maxWidth: 500 }}>
           <Typography variant="h5" sx={{ fontWeight: "bold", marginBottom: 2, textAlign: "center" }}>
-            Retrieved Medical Data
+            Your Electronic Health Record Data
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {medicalData.map((resource, index) => (
