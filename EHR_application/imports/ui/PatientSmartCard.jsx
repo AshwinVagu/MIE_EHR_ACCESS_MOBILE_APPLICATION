@@ -125,11 +125,14 @@ const PatientSmartCard = ({ data, objectId }) => {
           
         </Collapse>
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
-          <Button variant="outlined" color="error" onClick={handleDelete} sx={{ fontWeight: 'bold' }}>
-            Delete
-          </Button>
-        </Box>
+        {objectId && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+            <Button variant="outlined" color="error" onClick={handleDelete} sx={{ fontWeight: 'bold' }}>
+              Delete
+            </Button>
+          </Box>
+        )}
+        
       </CardContent>
     </Card>
   );
