@@ -204,3 +204,9 @@ export const fhir_token_options = {
         }
     ]
 };
+
+export const RESOURCE_TYPES = [
+    "Condition", "Observation", "Procedure", "AllergyIntolerance", "MedicationRequest",
+    "Immunization", "Encounter", "DiagnosticReport", "DocumentReference", "CarePlan",
+    "Patient", "Practitioner", "CareTeam", "Device", "Coverage", "Appointment"
+]; 

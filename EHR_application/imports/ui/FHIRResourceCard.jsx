@@ -53,7 +53,7 @@ const FHIRResourceCard = ({ resource , resourceId}) => {
         try {
           const user_id = localStorage.getItem("user_id");
           const objectName = `${user_id}_fhir_qr_${Date.now()}.json`;
-          const bucketName = "mie_fhir_mobile_app";
+          const bucketName = "mie_fhir_mobile_app_fhir_jsons";
     
           // Step 1: Get signed upload URL
           const { signedUrl } = await Meteor.callAsync("gcs.generateSignedUploadUrl", {
@@ -143,7 +143,8 @@ const FHIRResourceCard = ({ resource , resourceId}) => {
                             {renderValue(value)}
                         </Box>
                     ))}
-                    <Box sx={{ mt: 2, display: "flex", justifyContent: "center", gap: 2 }}>
+                    {resourceId && (
+                        <Box sx={{ mt: 2, display: "flex", justifyContent: "center", gap: 2 }}>
                         <Button variant="outlined" onClick={handleExportAsQR} sx={{ fontWeight: 'bold' }}>
                             Export as QR
                         </Button>
@@ -156,6 +157,8 @@ const FHIRResourceCard = ({ resource , resourceId}) => {
                             Delete
                         </Button>
                     </Box>
+                    )}
+                    
                 </CardContent>
             </Card>
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>

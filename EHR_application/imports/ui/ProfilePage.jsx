@@ -239,48 +239,67 @@ export const ProfilePage = () => {
                     </>
                 ) : (
                     <>
+                        <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            handleSave();
+                        }}
+                        >
                         {[
-                            { name: "first_name", label: "First Name", type: "text"},
+                            { name: "first_name", label: "First Name", type: "text" },
                             { name: "last_name", label: "Last Name", type: "text" },
-                            { name: "mobile", label: "Mobile", type: "tel"},
+                            { name: "mobile", label: "Mobile", type: "tel" },
                             { name: "age", label: "Age", type: "number" },
                             { name: "height", label: "Height (cm)", type: "number", step: "0.1" },
                             { name: "weight", label: "Weight (kg)", type: "number", step: "0.1" },
                         ].map(({ name, label, type, step }) => (
                             <div key={name} style={styles.inputGroup}>
-                                <label style={styles.label}>{label}</label>
-                                <input
-                                    name={name}
-                                    type={type || "text"} 
-                                    step={step} 
-                                    value={formData[name] || ""}
-                                    onChange={handleChange}
-                                    style={styles.input}
-                                    disabled={uploading} 
-                                />
+                            <label style={styles.label}>{label}</label>
+                            <input
+                                name={name}
+                                type={type}
+                                step={step}
+                                value={formData[name] || ""}
+                                onChange={handleChange}
+                                style={styles.input}
+                                disabled={uploading}
+                                required
+                                {...(name === "mobile" ? { pattern: "\\d{10,15}" } : {})}
+                                {...(["age", "height", "weight"].includes(name) ? { min: 1 } : {})}
+                            />
                             </div>
                         ))}
+
+                        <div style={styles.buttonGroup}>
+                            <button
+                            type="submit"
+                            style={styles.saveButton}
+                            disabled={uploading}
+                            >
+                            {uploading ? "Uploading..." : "Save"}
+                            </button>
+                            <button
+                            type="button"
+                            style={styles.cancelButton}
+                            onClick={() => {
+                                setEditing(false);
+                                setSelectedFile(null);
+                                const originalProfile = localStorage.getItem("user_profile");
+                                if (originalProfile) setFormData(JSON.parse(originalProfile));
+                                setMessage("");
+                            }}
+                            disabled={uploading}
+                            >
+                            Cancel
+                            </button>
+                        </div>
+                        </form>
                     </>
                 )}
 
               
                 <div style={styles.buttonGroup}>
-                    {editing ? (
-                        <>
-                            <button color="primary" style={styles.saveButton} onClick={() => handleSave()} disabled={uploading}>
-                                {uploading ? "Uploading..." : "Save"}
-                            </button>
-                            <button style={styles.cancelButton} onClick={() => {
-                                setEditing(false);
-                                setSelectedFile(null);
-                                const originalProfile = localStorage.getItem("user_profile");
-                                if (originalProfile) setFormData(JSON.parse(originalProfile));
-                                setMessage(""); // Clear messages on cancel
-                            }} disabled={uploading}>
-                                Cancel
-                            </button>
-                        </>
-                    ) : (
+                    {!editing  && (
                         <button style={styles.editButton} onClick={() => setEditing(true)}>
                             Edit Profile
                         </button>
