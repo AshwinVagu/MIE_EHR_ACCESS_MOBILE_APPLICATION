@@ -31,3 +31,9 @@ App.appendToConfig(`
     </edit-config>
   </platform>
 `);
+
+App.appendToConfig(`
+  <allow-navigation href="https://ashwinvagu.webch.art/*" />
+  <allow-navigation href="http://localhost:*" />
+  <access origin="https://ashwinvagu.webch.art" />
+`);
