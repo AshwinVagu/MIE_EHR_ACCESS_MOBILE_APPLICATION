@@ -5,6 +5,7 @@ import { Meteor } from "meteor/meteor";
 import {CLIENT_SECRET} from "../../credentials/secrets.js"; 
 import { fetchWithOfflineFallback } from '../utils/cache.js'; // Adjust the import path as necessary
 import { RESOURCE_TYPES } from "../metadata_jsons/fhir_token_options"; // Adjust the import path as necessary
+import { useNavigate } from "react-router-dom";
 
 export const EHRDataRetrieval = () => {
   const [clientSecret, setClientSecret] = useState(CLIENT_SECRET || "");
@@ -17,6 +18,7 @@ export const EHRDataRetrieval = () => {
   const [filteredData, setFilteredData] = useState([]);
   const authBaseURL = "https://ashwinvagu.webch.art";
   const clientID = "MIE-localhost";
+  const navigate = useNavigate();
 
   // Fetch data on page load (not dependent on client secret)
   useEffect(() => {
@@ -85,9 +87,36 @@ export const EHRDataRetrieval = () => {
       alert("Client Secret is required to proceed.");
       return;
     }
-
-    window.location.href = `${authBaseURL}/webchart.cgi/oauth/authenticate/?response_type=code&client_id=${clientID}&redirect_uri=${window.location.origin}/code&scope=launch/patient openid fhirUser offline_access patient/*.read&state=secure_random_state&aud=${authBaseURL}/webchart.cgi`;
+  
+    const redirectUri = `${window.location.origin}/code`;
+    const authUrl = `${authBaseURL}/webchart.cgi/oauth/authenticate/?response_type=code&client_id=${clientID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=launch/patient%20openid%20fhirUser%20offline_access%20patient/*.read&state=secure_random_state&aud=${authBaseURL}/webchart.cgi`;
+  
+    if (window.cordova && window.cordova.InAppBrowser) {
+      const ref = cordova.InAppBrowser.open(authUrl, "_blank", "location=yes,clearsessioncache=yes,clearcache=yes");
+  
+      ref.addEventListener("loadstart", (event) => {
+        const url = new URL(event.url);
+  
+        if (url.origin === window.location.origin && url.pathname === "/code") {
+          const code = url.searchParams.get("code");
+  
+          if (code) {
+            ref.close();
+            console.log("Redirecting to AuthCode component with code:", code);
+            navigate(`/code?code=${encodeURIComponent(code)}`);
+          }
+        }
+      });
+  
+      ref.addEventListener("exit", () => {
+        console.log("InAppBrowser closed by user.");
+      });
+    } else {
+      // fallback for desktop browser
+      window.location.href = authUrl;
+    }
   };
+  
 
   return (
     <Box sx={{ padding: 2, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center" }}>

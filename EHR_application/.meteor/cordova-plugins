@@ -1,5 +1,6 @@
 cordova-plugin-camera@6.0.0
 cordova-plugin-firebase-authentication@5.1.0
 cordova-plugin-health@2.1.0
+cordova-plugin-inappbrowser@5.0.0
 cordova-plugin-x-toast@2.7.2
 phonegap-plugin-barcodescanner@8.1.0
