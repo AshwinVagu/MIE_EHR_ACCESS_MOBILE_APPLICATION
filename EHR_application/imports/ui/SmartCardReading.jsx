@@ -55,27 +55,28 @@ export const SmartCardReading = () => {
     setFilteredData(filtered);
   };
 
-  useEffect(() => { 
-    async function fetchData() {
-      try {
-        const userProfile = JSON.parse(localStorage.getItem("user_profile"));
-        const user_id = userProfile?.user_id;
-
-        const cacheKey = `medical_smart_card_data_cacheKey`;
-
-        const { data: res } = await fetchWithOfflineFallback(
-          cacheKey,
-          () => Meteor.callAsync("bundleData.getByUserId", user_id)
-        );
-
-        setPatientData(res);
-        setFilteredData(res);
-      } catch (err) {
-        console.log("Error:", err); 
-      }
-    }  
+  useEffect(() => {  
     fetchData();
   }, []);
+
+  async function fetchData() {
+    try {
+      const userProfile = JSON.parse(localStorage.getItem("user_profile"));
+      const user_id = userProfile?.user_id;
+
+      const cacheKey = `medical_smart_card_data_cacheKey`;
+
+      const { data: res } = await fetchWithOfflineFallback(
+        cacheKey,
+        () => Meteor.callAsync("bundleData.getByUserId", user_id)
+      );
+
+      setPatientData(res);
+      setFilteredData(res);
+    } catch (err) {
+      console.log("Error:", err); 
+    }
+  } 
 
 
   return (
@@ -192,7 +193,7 @@ export const SmartCardReading = () => {
       <Grid container sx={{ gap: 2 }} justifyContent="center">
         {filteredData.map((item, index) => (
           <Grid xs={12} sm={6} md={4} key={index}>
-            <PatientSmartCard data={item['bundle_data']} objectId={item['_id']} />
+            <PatientSmartCard data={item['bundle_data']} objectId={item['_id']} onDelete={fetchData}/>
           </Grid>
         ))}
       </Grid>

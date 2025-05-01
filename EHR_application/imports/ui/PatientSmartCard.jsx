@@ -35,7 +35,7 @@ const renderField = (key, value) => {
   );
 };
 
-const PatientSmartCard = ({ data, objectId }) => {
+const PatientSmartCard = ({ data, objectId, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
 
   const handleDelete = async () => {
@@ -58,7 +58,7 @@ const PatientSmartCard = ({ data, objectId }) => {
   
       if (response?.status === "success") {
         alert("Resource deleted successfully.");
-        window.location.reload(); // Optionally re-fetch cards
+        if (onDelete) onDelete(); // Optionally re-fetch cards
       } else {
         throw new Error(response?.message || "Deletion failed");
       }

@@ -47,7 +47,7 @@ const renderValue = (value) => {
     return <Typography variant="body2" sx={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{value || "N/A"}</Typography>;
 };
 
-const FHIRResourceCard = ({ resource , resourceId}) => {
+const FHIRResourceCard = ({ resource , resourceId, onDelete}) => {
 
     const handleExportAsQR = async () => {
         try {
@@ -109,7 +109,7 @@ const FHIRResourceCard = ({ resource , resourceId}) => {
       
           if (response?.status === "success") {
             alert("Resource deleted successfully.");
-            window.location.reload(); // Refresh to re-fetch cards
+            if (onDelete) onDelete();  // Refresh to re-fetch cards
           } else {
             throw new Error(response?.message || "Deletion failed");
           }

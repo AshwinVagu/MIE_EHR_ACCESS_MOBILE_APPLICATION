@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Meteor } from "meteor/meteor";
 
 const getGcsPublicUrl = (bucketName, objectName) => {
@@ -12,6 +13,7 @@ export const ProfilePage = () => {
     const [selectedFile, setSelectedFile] = useState(null); 
     const [uploading, setUploading] = useState(false); 
     const fileInputRef = useRef(null); 
+    const navigate = useNavigate();
 
     // GCS Configuration 
     const GCS_BUCKET_NAME = "mie_fhir_mobile_app";
@@ -154,15 +156,15 @@ export const ProfilePage = () => {
                         position: "bottom", 
                         addPixelsY: -40, 
                     },
-                    () => window.location.href = "/", 
+                    () => navigate("/"), 
                     (err) => { 
                         console.error("Toast failed", err);
-                        window.location.href = "/"; // Fallback redirect
+                        navigate("/"); // Fallback redirect
                     }
                 );
             } else {
                 alert("Logged out successfully!"); // Simple alert as fallback
-                window.location.href = "/";
+                navigate("/");
             }
         } catch (err) {
             console.error("Logout failed:", err);
