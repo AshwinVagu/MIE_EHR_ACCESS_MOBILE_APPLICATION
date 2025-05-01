@@ -9,10 +9,10 @@ Meteor.methods({
 
       // Insert only if fhir_id does not already exist
       const insertedIds = docs.map(async (doc) => {
-        const exists = await ResourceDataCollection.findOneAsync({ fhir_id: doc.fhir_id });
+        const exists = await ResourceDataCollection.findOneAsync({ fhir_id: doc.fhir_id, user_id: doc.user_id });
 
         if (!exists) {
-          return ResourceDataCollection.insertAsync(doc);
+          return await ResourceDataCollection.insertAsync(doc);
         } else {
           console.log(`Skipping duplicate resource: ${doc.fhir_id}`);
           return null; 

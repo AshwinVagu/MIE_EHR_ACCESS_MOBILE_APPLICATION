@@ -279,7 +279,7 @@ export const EHRDataRetrieval = () => {
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {filteredData.map((resource, index) => (
-            <FHIRResourceCard key={index} resource={resource.resource_data} resourceId={resource.fhir_id}/>
+            <FHIRResourceCard key={index} resource={resource.resource_data} resourceId={resource.fhir_id} onDelete={fetchMedicalData}/>
           ))}
           </Box>
         </Box>

@@ -122,7 +122,7 @@ meteor run android-device
 - credentials/secrets.js: Firebase & WebChart secrets
 
 ## Demo Video
-
+For a better understanding of the application look at this video - https://www.youtube.com/watch?v=kY3mbcXx-RE
 
 ## Workflow Diagrams
 
